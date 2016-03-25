@@ -58,6 +58,37 @@ public class FragmentTest {
   }
 
   //-------------------------------------------------------------------------
+  public void test_DefSqlFragment_id() {
+    DefSqlFragment test = new DefSqlFragment("test1", "test2");
+    assertEquals("DefSqlFragment:test1:test2", test.toString());
+  }
+
+  public void test_DefSqlFragment_idTableOnly() {
+    DefSqlFragment test = new DefSqlFragment("test1", null);
+    assertEquals("DefSqlFragment:test1:null", test.toString());
+  }
+
+  public void test_DefSqlFragment_var() {
+    DefSqlFragment test = new DefSqlFragment(":test1", ":test2");
+    assertEquals("DefSqlFragment::test1::test2", test.toString());
+  }
+
+  public void test_DefSqlFragment_varExtended() {
+    DefSqlFragment test = new DefSqlFragment(":{test1}", ":{test2}");
+    assertEquals("DefSqlFragment::{test1}::{test2}", test.toString());
+  }
+
+  public void test_DefSqlFragment_varExtendedDollar() {
+    DefSqlFragment test = new DefSqlFragment(":${test1}", ":${test2}");
+    assertEquals("DefSqlFragment::${test1}::${test2}", test.toString());
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void test_DefSqlFragment_nullTable() {
+    new DefSqlFragment(null, "test");
+  }
+
+  //-------------------------------------------------------------------------
   public void test_ValueSqlFragment() {
     ValueSqlFragment test = new ValueSqlFragment(":test", true);
     assertEquals("ValueSqlFragment:test", test.toString());

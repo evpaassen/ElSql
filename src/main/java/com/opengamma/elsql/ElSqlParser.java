@@ -76,6 +76,11 @@ final class ElSqlParser {
   private static final Pattern INCLUDE_PATTERN = Pattern.compile(
       "[@]INCLUDE[(](" + VARIABLE + "|" + IDENTIFIER + ")[)](.*)");
   /**
+   * The regex for @DEF(variable|identifier)
+   */
+  private static final Pattern DEF_PATTERN = Pattern.compile(
+          "[@]DEF[(](" + VARIABLE_LOOPINDEX + "|" + IDENTIFIER + ")([ ]?[,][ ]?)?(" + VARIABLE_LOOPINDEX + "|" + IDENTIFIER + ")?[)](.*)");
+  /**
    * The regex for @PAGING(offsetVariableOrLiteral,fetchVariableOrLiteral)
    */
   private static final Pattern PAGING_PATTERN = Pattern.compile(
@@ -302,6 +307,9 @@ final class ElSqlParser {
     }
     if (trimmed.contains("@INCLUDE")) {
       parseIncludeTag(container, line);
+
+    } else  if (trimmed.contains("@DEF")) {
+      parseDefTag(container, line);
       
     } else  if (trimmed.contains("@LIKE")) {
       parseOperatorTag(container, line, "@LIKE");
@@ -355,6 +363,33 @@ final class ElSqlParser {
     container.addFragment(includeFragment);
     
     Line subLine = split[1].splitRemainder(matcher.start(2));
+    parseLine(container, subLine);
+  }
+
+  /**
+   * Parse DEF tag.
+   * <p>
+   * This tag can appear anywhere in a line.
+   * It substitutes the entire content of the named section in at this point.
+   * The text before is treated as simple text.
+   * The text after is parsed.
+   *
+   * @param container  the container to add to, not null
+   * @param line  the line to parse, not null
+   */
+  private void parseDefTag(ContainerSqlFragment container, Line line) {
+    Line[] split = line.split(line.lineTrimmed().indexOf("@DEF"));
+    parseLine(container, split[0]);
+    String trimmed = split[1].lineTrimmed();
+
+    Matcher matcher = DEF_PATTERN.matcher(trimmed);
+    if (matcher.matches() == false) {
+      throw new IllegalArgumentException("@DEF found with invalid format: " + line);
+    }
+    DefSqlFragment defFragment = new DefSqlFragment(matcher.group(1), matcher.group(3));
+    container.addFragment(defFragment);
+
+    Line subLine = split[1].splitRemainder(matcher.start(4));
     parseLine(container, subLine);
   }
 
