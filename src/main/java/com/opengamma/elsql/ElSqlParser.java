@@ -76,6 +76,11 @@ final class ElSqlParser {
   private static final Pattern INCLUDE_PATTERN = Pattern.compile(
       "[@]INCLUDE[(](" + VARIABLE + "|" + IDENTIFIER + ")[)](.*)");
   /**
+   * The regex for @ALIAS(variable|identifier)
+   */
+  private static final Pattern ALIAS_PATTERN = Pattern.compile(
+      "[@]ALIAS[(](" + VARIABLE_LOOPINDEX + "|" + IDENTIFIER + ")[)][ ]*");
+  /**
    * The regex for @PAGING(offsetVariableOrLiteral,fetchVariableOrLiteral)
    */
   private static final Pattern PAGING_PATTERN = Pattern.compile(
@@ -190,7 +195,19 @@ final class ElSqlParser {
         
       } else if (indent < 0) {
         throw new IllegalArgumentException("Invalid fragment found at root level, only @NAME is permitted: " + line);
-        
+
+      } else if (trimmed.startsWith("@ALIAS")) {
+        Matcher aliasMatcher = ALIAS_PATTERN.matcher(trimmed);
+        if (aliasMatcher.matches() == false) {
+          throw new IllegalArgumentException("@ALIAS found with invalid format: " + line);
+        }
+        AliasSqlFragment aliasFragment = new AliasSqlFragment(aliasMatcher.group(1));
+        parseContainerSection(aliasFragment, lineIterator, line.indent());
+        if (aliasFragment.getFragments().size() == 0) {
+          throw new IllegalArgumentException("@ALIAS found with no subsequent indented lines: " + line);
+        }
+        container.addFragment(aliasFragment);
+
       } else if (trimmed.startsWith("@PAGING")) {
         Matcher pagingMatcher = PAGING_PATTERN.matcher(trimmed);
         if (pagingMatcher.matches() == false) {

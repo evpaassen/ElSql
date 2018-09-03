@@ -26,6 +26,17 @@ public class FragmentTest {
   }
 
   //-------------------------------------------------------------------------
+  public void test_AliasSqlFragment() {
+    AliasSqlFragment test = new AliasSqlFragment("test");
+    assertEquals("AliasSqlFragment:test []", test.toString());
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void test_AliasSqlFragment_null() {
+    new AliasSqlFragment(null);
+  }
+
+  //-------------------------------------------------------------------------
   public void test_ContainerSqlFragment() {
     ContainerSqlFragment test = new ContainerSqlFragment();
     assertEquals("[]", test.toString());

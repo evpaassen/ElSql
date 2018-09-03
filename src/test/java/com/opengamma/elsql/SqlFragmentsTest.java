@@ -167,6 +167,61 @@ public class SqlFragmentsTest {
   }
 
   //-------------------------------------------------------------------------
+  public void test_alias_identifier() {
+    List<String> lines = Arrays.asList(
+            "@NAME(Test1)",
+            "  @ALIAS(table_09_AZ)",
+            "    SELECT * FROM {alias}"
+    );
+    SqlFragments bundle = SqlFragments.parse(lines);
+    String sql1 = bundle.getSql("Test1", EmptySqlParams.INSTANCE);
+    assertEquals("SELECT * FROM table_09_AZ ", sql1);
+  }
+
+  public void test_alias_variable() {
+    List<String> lines = Arrays.asList(
+            "@NAME(Test1)",
+            "  @ALIAS(:var)",
+            "    SELECT * FROM {alias}"
+    );
+    SqlFragments bundle = SqlFragments.parse(lines);
+    String sql1 = bundle.getSql("Test1", new MapSqlParams("var", "table"));
+    assertEquals("SELECT * FROM table ", sql1);
+  }
+
+  public void test_alias_variable_extendedFormat() {
+    List<String> lines = Arrays.asList(
+            "@NAME(Test1)",
+            "  @ALIAS(:{var})",
+            "    SELECT * FROM {alias}"
+    );
+    SqlFragments bundle = SqlFragments.parse(lines);
+    String sql1 = bundle.getSql("Test1", new MapSqlParams("var", "table"));
+    assertEquals("SELECT * FROM table ", sql1);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void test_alias_variable_notFound() {
+    List<String> lines = Arrays.asList(
+            "@NAME(Test1)",
+            "  @ALIAS(:var)",
+            "    SELECT * FROM {alias}"
+    );
+    SqlFragments bundle = SqlFragments.parse(lines);
+    bundle.getSql("Test1", EmptySqlParams.INSTANCE);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void test_alias_invalidFormat1() {
+    List<String> lines = Arrays.asList(
+            "@NAME(Test1)",
+            "  @ALIAS(:var",
+            "    SELECT * FROM {alias}"
+    );
+    SqlFragments.parse(lines);
+  }
+
+  //-------------------------------------------------------------------------
   public void test_insert_name() {
     List<String> lines = Arrays.asList(
         "@NAME(Test1)",
